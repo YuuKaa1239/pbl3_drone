@@ -2,7 +2,7 @@
 #include <WebServer.h>
 #include <ArduinoJson.h>
 
-const char* ssid = "Chơi đá không em?"; 
+const char* ssid = "AHHHHHHHHHHH"; 
 const char* password = "12345678";
 
 IPAddress local_ip(192,168,4,1);
