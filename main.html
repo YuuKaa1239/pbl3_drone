@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, orientation=landscape">
     <title>Drone Control Interface</title>
     <style>
         body {
@@ -65,6 +66,43 @@
             top: 75px;
             left: 75px;
         }
+        /* Khi màn hình ngang (Landscape) */
+@media (orientation: landscape) {
+    .controls-container {
+        flex-direction: row; /* Thay đổi bố cục sang hàng ngang */
+    }
+
+    .slider-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    #throttle-slider {
+        width: 20px;
+        height: 200px;
+    }
+
+    #roll-slider {
+        width: 200px;
+        margin-top: 20px;
+    }
+
+    .joystick-container {
+        width: 200px;
+        height: 200px;
+        background-color: #440000;
+        border-radius: 50%;
+    }
+
+    #joystick {
+        width: 50px;
+        height: 50px;
+        background-color: #ff0000;
+        border-radius: 50%;
+        position: absolute;
+        top: 75px;
+        left: 75px;
+    }}
     </style>
 </head>
 <body>
