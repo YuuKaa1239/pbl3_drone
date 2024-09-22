@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drone Control Interface</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #220000;
+            color: #ffffff;
+        }
+
+        .control-panel {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 10px;
+            background-color: #440000;
+        }
+
+
+        #status-display #geometry #battery_status{
+            font-size: 14px;
+        }
+
+        .controls-container {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px;
+        }
+
+        .slider-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #throttle-slider {
+            -webkit-appearance: slider-vertical;
+            width: 20px;
+            height: 200px;
+        }
+
+        #roll-slider {
+            width: 200px;
+            margin-top: 20px;
+        }
+
+        .joystick-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            background-color: #440000;
+            border-radius: 50%;
+        }
+
+        #joystick {
+            width: 50px;
+            height: 50px;
+            background-color: #ff0000;
+            border-radius: 50%;
+            position: absolute;
+            top: 75px;
+            left: 75px;
+        }
+    </style>
+</head>
+<body>
+    <div class="control-panel">
+        <div id="geometry">
+            X: <span id="X_geo"></span>
+            Y: <span id="Y_geo"></span>
+            Z: <span id="Z_geo"></span>
+        </div>
+        <div id="status-display">
+            Throttle: <span id="throttle-display">0</span>
+            Roll: <span id="roll-display">1500</span> 
+            Pitch: <span id="pitch-display">1500</span> 
+            Yaw: <span id="yaw-display">1500</span>
+        </div>
+        <div id="battery_status">
+            Battery: <span id="bat_status">%</span>
+        </div>
+    </div>
+
+    <!-- Control -->
+    <div class="controls-container">
+        <div class="slider-container">
+            <input type="range" id="throttle-slider" min="1000" max="2000" value="1000" orient="vertical">
+            <label for="throttle-slider">Throttle</label>
+            <input type="range" id="roll-slider" min="1000" max="2000" value="1500">
+            <label for="roll-slider">Roll</label>
+        </div>
+
+        <div class="joystick-container">
+            <div id="joystick"></div>
+        </div>
+    </div>
+
+    <script>
+        // Get the throttle and roll slider elements
+        const throttleSlider = document.getElementById('throttle-slider');
+        const rollSlider = document.getElementById('roll-slider');
+
+        // Joystick variables
+        let joystick = document.getElementById('joystick');
+        let joystickContainer = document.querySelector('.joystick-container');
+
+        // Status Display elements
+        const throttleDisplay = document.getElementById('throttle-display');
+        const rollDisplay = document.getElementById('roll-display');
+        const pitchDisplay = document.getElementById('pitch-display');
+        const yawDisplay = document.getElementById('yaw-display');
+
+        //battery & xyz display
+        const x_geo=document.getElementById('X_geo');
+        const y_geo=document.getElementById('Y_geo');
+        const z_geo=document.getElementById('Z_geo');
+        const battery=document.getElementById('bat_status');
+
+
+        // Initial joystick position
+        const initialJoystickPosition = {
+            top: 75,
+            left: 75
+        };
+
+        //Show X,Y,Z
+
+
+        // Event listener for Throttle Slider
+        throttleSlider.addEventListener('input', function () {
+            let throttleValue = throttleSlider.value;
+            throttleDisplay.textContent=throttleValue;
+            console.log('Throttle: ', throttleValue);
+            // Send throttle value to MQTT or your communication protocol
+        });
+
+        // Event listener for Roll Slider
+        rollSlider.addEventListener('input', function () {
+            let rollValue = rollSlider.value;
+            rollDisplay.textContent = rollValue;
+            console.log('Roll: ', rollValue);
+            // Send roll value to MQTT or your communication protocol
+        });
+
+        // Joystick movement (Pitch & Yaw)
+        joystickContainer.addEventListener('mousemove', function (event) {
+            let rect = joystickContainer.getBoundingClientRect();
+            let x = event.clientX - rect.left - joystick.offsetWidth / 2;
+            let y = event.clientY - rect.top - joystick.offsetHeight / 2;
+
+            // Limit joystick movement within the container
+            x = Math.max(0, Math.min(x, joystickContainer.offsetWidth - joystick.offsetWidth));
+            y = Math.max(0, Math.min(y, joystickContainer.offsetHeight - joystick.offsetHeight));
+
+            // Move the joystick element
+            joystick.style.left = `${x}px`;
+            joystick.style.top = `${y}px`;
+
+            // Calculate pitch and yaw based on joystick position
+            let pitchValue =1000+ ((y / (joystickContainer.offsetHeight - joystick.offsetHeight))*1000) ;
+            let yawValue =1000+ ((x / (joystickContainer.offsetWidth - joystick.offsetWidth))*1000);
+
+            //let pitch_Value = Math.min(Math.abs(pitchValue.toFixed(5))*1000,2000).toFixed(0);
+            //let yaw_Value = Math.min(Math.abs(yawValue.toFixed(5))*1000,2000).toFixed(0);
+            pitchDisplay.textContent=pitchValue.toFixed(0);
+            yawDisplay.textContent=yawValue.toFixed(0);
+            console.log('Pitch: ', pitchValue, 'Yaw: ', yawValue);
+            // Send pitch and yaw values to MQTT or your communication protocol
+        });
+
+            // Event listener for Roll Slider
+        rollSlider.addEventListener('input', function () {
+            let rollValue = rollSlider.value;
+            rollDisplay.textContent = rollValue;
+            console.log('Roll: ', rollValue);
+            // Send roll value to MQTT or your communication protocol
+        });
+
+        // Reset Roll Slider to default value when mouse is released
+        rollSlider.addEventListener('mouseup', function () {
+            rollSlider.value = 1500;
+            rollDisplay.textContent = 1500;
+            console.log('Roll reset to 1500');
+            // Send default roll value to MQTT or your communication protocol
+        });
+        
+        // Reset joystick position to default when mouse is released
+        joystickContainer.addEventListener('mouseup', resetJoystickPosition);
+        joystickContainer.addEventListener('mouseleave', resetJoystickPosition);
+
+        function resetJoystickPosition() {
+            // Reset joystick position to the center
+            joystick.style.top = `${initialJoystickPosition.top}px`;
+            joystick.style.left = `${initialJoystickPosition.left}px`;
+
+            // Reset pitch and yaw values to default
+            pitchDisplay.textContent = "1500";
+            yawDisplay.textContent = "1500";
+
+            console.log('Pitch: 1500, Yaw: 1500');
+            // Send reset pitch and yaw values to MQTT or your communication protocol
+        }
+    </script>
+</body>
+</html>
