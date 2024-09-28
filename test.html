@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HiveMQ MQTT WebSocket Example</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <script>
+        function connectMQTT() {
+            // Thông tin kết nối
+            const brokerUrl = 'wss://f25d07497dbb44da809d2368a4a7e27f.s1.eu.hivemq.cloud:8884/mqtt';
+            const options = {
+                username: 'peppa',
+                password: 'Peppa_pig1',
+                reconnectPeriod: 1000, // thời gian kết nối lại (ms)
+                connectTimeout: 4000,  // thời gian chờ kết nối (ms)
+            };
+
+            // Kết nối tới broker
+            const client = mqtt.connect(brokerUrl, options);
+
+            client.on('connect', () => {
+                console.log('Đã kết nối tới HiveMQ');
+                client.subscribe('drone/transfer', (err) => {
+                    if (!err) {
+                        console.log('Đã đăng ký thành công topic');
+                    }
+                });
+            });
+
+            client.on('message', (topic, message) => {
+                console.log(`Nhận được tin nhắn từ ${topic}: ${message.toString()}`);
+            });
+
+            client.on('error', (error) => {
+                console.error('Lỗi kết nối:', error);
+            });
+
+            client.on('close', () => {
+                console.log('Đã ngắt kết nối');
+            });
+        }
+    </script>
+</head>
+<body>
+    <h1>HiveMQ MQTT WebSocket Example</h1>
+    <button onclick="connectMQTT()">Kết nối tới MQTT</button>
+</body>
+</html>
