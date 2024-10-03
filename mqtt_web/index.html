@@ -144,7 +144,8 @@
             throttleDisplay.textContent = throttleValue;
             console.log('Throttle: ', throttleValue);
             // Gửi giá trị throttle đến MQTT
-            client.publish('drone/transfer', JSON.stringify({ throttle: throttleValue }));
+            publishDroneData();
+            //client.publish('drone/transfer', JSON.stringify({ throttle: throttleValue,roll:rollValue,yaw:yawValue,pitch:pitchValue }));
         });
 
         rollSlider.addEventListener('input', function () {
@@ -152,7 +153,8 @@
             rollDisplay.textContent = rollValue;
             console.log('Roll: ', rollValue);
             // Gửi giá trị roll đến MQTT
-            client.publish('drone/transfer', JSON.stringify({ roll: rollValue }));
+            publishDroneData();
+            //client.publish('drone/transfer', JSON.stringify({ throttle: throttleValue,roll:rollValue,yaw:yawValue,pitch:pitchValue }));
         });
 
         joystickContainer.addEventListener('mousemove', function (event) {
@@ -173,7 +175,8 @@
             yawDisplay.textContent = yawValue.toFixed(0);
             console.log('Pitch: ', pitchValue, 'Yaw: ', yawValue);
             // Gửi giá trị pitch và yaw đến MQTT
-            client.publish('drone/transfer', JSON.stringify({ pitch: pitchValue, yaw: yawValue }));
+            publishDroneData();
+            //client.publish('drone/transfer', JSON.stringify({ throttle: throttleValue,roll:rollValue,yaw:yawValue,pitch:pitchValue }));
         });
 
         joystickContainer.addEventListener('mouseup', resetJoystickPosition);
@@ -185,6 +188,16 @@
             pitchDisplay.textContent = "1500";
             yawDisplay.textContent = "1500";
             console.log('Pitch: 1500, Yaw: 1500');
+        }
+
+        function publishDroneData() {
+            const data = {
+                throttle: parseInt(throttleSlider.value),
+                roll: parseInt(rollSlider.value),
+                pitch: parseInt(pitchDisplay.textContent),
+                yaw: parseInt(yawDisplay.textContent)
+            };
+            client.publish('drone/transfer', JSON.stringify(data));
         }
     </script>
 </body>
