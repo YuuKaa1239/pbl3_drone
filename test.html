@@ -160,10 +160,31 @@
         joystickContainer.addEventListener('mousedown', function () {
             joystickContainer.addEventListener('mousemove', updateJoystickPosition);
         });
-
-        joystickContainer.addEventListener('touchmove', function (event) {
-            updateJoystickPosition(event.touches[0]);
+        
+        joystickContainer.addEventListener('mouseup', function () {
+            joystickContainer.removeEventListener('mousemove', updateJoystickPosition);
+            resetJoystickPosition();
         });
+        
+        joystickContainer.addEventListener('mouseleave', function () {
+            joystickContainer.removeEventListener('mousemove', updateJoystickPosition);
+            resetJoystickPosition();
+        });
+        
+        joystickContainer.addEventListener('touchstart', function () {
+            joystickContainer.addEventListener('touchmove', handleTouchMove);
+        });
+        
+        joystickContainer.addEventListener('touchend', function () {
+            joystickContainer.removeEventListener('touchmove', handleTouchMove);
+            resetJoystickPosition();
+        });
+        
+        function handleTouchMove(event) {
+            if (event.touches.length > 0) {
+                updateJoystickPosition(event.touches[0]);
+            }
+        }
 
         joystickContainer.addEventListener('mousemove', function (event) {
             let rect = joystickContainer.getBoundingClientRect();
