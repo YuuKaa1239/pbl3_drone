@@ -122,8 +122,9 @@
         //     console.log('Received message:', topic, message.toString());
         //     // Xử lý tin nhắn tại đây
         // });
-        client.on('message', function (topic, message) {
-            console.log('Received message:', topic, message.toString());
+        const topic_ = "drone/data";
+        client.on('message', function (topic_, message) {
+            console.log('Received message:', topic_, message.toString());
         
             // Giả sử dữ liệu từ MQTT là một chuỗi JSON có dạng {x: value, y: value, z: value, battery_status: value}
             //ví dụ: json form của data phải gửi từ esp lên: {"x":10700,"y":1500,"z":1500,"battery_status":1500} (phải gửi đúng form nha
