@@ -158,75 +158,76 @@
         });
 
        let isDragging = false;
-
-joystickContainer.addEventListener('mousedown', function () {
-    isDragging = true;
-    joystickContainer.addEventListener('mousemove', updateJoystickPosition);
-});
-
-document.addEventListener('mouseup', function () {
-    if (isDragging) {
-        isDragging = false;
-        joystickContainer.removeEventListener('mousemove', updateJoystickPosition);
-        resetJoystickPosition();
-    }
-});
-
-joystickContainer.addEventListener('touchstart', function () {
-    event.preventDefault();
-    isDragging = true;
-    joystickContainer.addEventListener('touchmove', handleTouchMove);
-});
-
-document.addEventListener('touchend', function () {
-    event.preventDefault();
-    if (isDragging) {
-        isDragging = false;
-        joystickContainer.removeEventListener('touchmove', handleTouchMove);
-        resetJoystickPosition();
-    }
-});
-
-function handleTouchMove(event) {
-    if (event.touches.length > 0) {
-        updateJoystickPosition(event.touches[0]);
-    }
-}
-
-function updateJoystickPosition(event) {
-    if (!isDragging) return;
-
-    requestAnimationFrame(() => {
-        let rect = joystickContainer.getBoundingClientRect();
-        let x = event.clientX - rect.left - joystick.offsetWidth / 2;
-        let y = event.clientY - rect.top - joystick.offsetHeight / 2;
-
-        x = Math.max(0, Math.min(x, joystickContainer.offsetWidth - joystick.offsetWidth));
-        y = Math.max(0, Math.min(y, joystickContainer.offsetHeight - joystick.offsetHeight));
-
-        joystick.style.left = `${x}px`;
-        joystick.style.top = `${y}px`;
-
-        pitchValue = 1000 + ((y / (joystickContainer.offsetHeight - joystick.offsetHeight)) * 1000);
-        yawValue = 1000 + ((x / (joystickContainer.offsetWidth - joystick.offsetWidth)) * 1000);
-
-        pitchDisplay.textContent = pitchValue.toFixed(0);
-        yawDisplay.textContent = yawValue.toFixed(0);
-        publishDroneData();
-    });
-}
-
-function resetJoystickPosition() {
-    requestAnimationFrame(() => {
-        joystick.style.top = `${initialJoystickPosition.top}px`;
-        joystick.style.left = `${initialJoystickPosition.left}px`;
-        pitchValue = 1500;
-        yawValue = 1500;
-        pitchDisplay.textContent = "1500";
-        yawDisplay.textContent = "1500";
-        publishDroneData();
-    });
-}
+        rollSlider.addEventListener('mouseup', resetRollPosition);
+        rollSlider.addEventListener('touchend', resetRollPosition);
+        joystickContainer.addEventListener('mousedown', function () {
+            isDragging = true;
+            joystickContainer.addEventListener('mousemove', updateJoystickPosition);
+        });
+        
+        document.addEventListener('mouseup', function () {
+            if (isDragging) {
+                isDragging = false;
+                joystickContainer.removeEventListener('mousemove', updateJoystickPosition);
+                resetJoystickPosition();
+            }
+        });
+        
+        joystickContainer.addEventListener('touchstart', function () {
+            event.preventDefault();
+            isDragging = true;
+            joystickContainer.addEventListener('touchmove', handleTouchMove);
+        });
+        
+        document.addEventListener('touchend', function () {
+            event.preventDefault();
+            if (isDragging) {
+                isDragging = false;
+                joystickContainer.removeEventListener('touchmove', handleTouchMove);
+                resetJoystickPosition();
+            }
+        });
+        
+        function handleTouchMove(event) {
+            if (event.touches.length > 0) {
+                updateJoystickPosition(event.touches[0]);
+            }
+        }
+        
+        function updateJoystickPosition(event) {
+            if (!isDragging) return;
+        
+            requestAnimationFrame(() => {
+                let rect = joystickContainer.getBoundingClientRect();
+                let x = event.clientX - rect.left - joystick.offsetWidth / 2;
+                let y = event.clientY - rect.top - joystick.offsetHeight / 2;
+        
+                x = Math.max(0, Math.min(x, joystickContainer.offsetWidth - joystick.offsetWidth));
+                y = Math.max(0, Math.min(y, joystickContainer.offsetHeight - joystick.offsetHeight));
+        
+                joystick.style.left = `${x}px`;
+                joystick.style.top = `${y}px`;
+        
+                pitchValue = 1000 + ((y / (joystickContainer.offsetHeight - joystick.offsetHeight)) * 1000);
+                yawValue = 1000 + ((x / (joystickContainer.offsetWidth - joystick.offsetWidth)) * 1000);
+        
+                pitchDisplay.textContent = pitchValue.toFixed(0);
+                yawDisplay.textContent = yawValue.toFixed(0);
+                publishDroneData();
+            });
+        }
+        
+        function resetJoystickPosition() {
+            requestAnimationFrame(() => {
+                joystick.style.top = `${initialJoystickPosition.top}px`;
+                joystick.style.left = `${initialJoystickPosition.left}px`;
+                pitchValue = 1500;
+                yawValue = 1500;
+                pitchDisplay.textContent = "1500";
+                yawDisplay.textContent = "1500";
+                publishDroneData();
+            });
+        }
 
         function publishDroneData() {
             const data = {
