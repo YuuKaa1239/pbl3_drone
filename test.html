@@ -126,6 +126,7 @@
             console.log('Received message:', topic, message.toString());
         
             // Giả sử dữ liệu từ MQTT là một chuỗi JSON có dạng {x: value, y: value, z: value, battery_status: value}
+            //json form của data phải gửi từ esp lên: {"x":10700,"y":1500,"z":1500,"battery_status":1500}
             try {
                 const data = JSON.parse(message.toString());
         
