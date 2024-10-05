@@ -56,7 +56,6 @@
             height: 200px;
             background-color: #440000;
             border-radius: 50%;
-            touch-action: none;
         }
 
         #joystick {
@@ -67,6 +66,7 @@
             position: absolute;
             top: 75px;
             left: 75px;
+            touch-action: none;
         }
     </style>
 </head>
@@ -98,7 +98,7 @@
             <label for="roll-slider">Roll</label>
         </div>
 
-        <div class="joystick-container">
+        <div class="joystick-container" id="joystick-container">
             <div id="joystick"></div>
         </div>
     </div>
@@ -135,8 +135,8 @@
 
         const throttleSlider = document.getElementById('throttle-slider');
         const rollSlider = document.getElementById('roll-slider');
-        let joystick = document.getElementById('joystick');
-        let joystickContainer = document.querySelector('.joystick-container');
+        const joystick = document.getElementById('joystick');
+        const joystickContainer = document.getElementById('joystick-container');
 
         const throttleDisplay = document.getElementById('throttle-display');
         const rollDisplay = document.getElementById('roll-display');
@@ -162,6 +162,7 @@
         });
 
         joystickContainer.addEventListener('pointerdown', function (event) {
+            joystickContainer.style.touchAction = 'none';
             joystickContainer.setPointerCapture(event.pointerId);
             moveJoystick(event);
         });
@@ -172,7 +173,10 @@
             }
         });
 
-        joystickContainer.addEventListener('pointerup', resetJoystickPosition);
+        joystickContainer.addEventListener('pointerup', function (event) {
+            joystickContainer.style.touchAction = 'auto';
+            resetJoystickPosition();
+        });
 
         function moveJoystick(event) {
             let rect = joystickContainer.getBoundingClientRect();
