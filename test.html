@@ -173,11 +173,13 @@ document.addEventListener('mouseup', function () {
 });
 
 joystickContainer.addEventListener('touchstart', function () {
+    event.preventDefault();
     isDragging = true;
     joystickContainer.addEventListener('touchmove', handleTouchMove);
 });
 
 document.addEventListener('touchend', function () {
+    event.preventDefault();
     if (isDragging) {
         isDragging = false;
         joystickContainer.removeEventListener('touchmove', handleTouchMove);
