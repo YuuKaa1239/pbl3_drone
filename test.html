@@ -118,9 +118,32 @@
             mqttStatusDisplay.textContent = 'Connection error: ' + error.message;
         });
 
+        // client.on('message', function (topic, message) {
+        //     console.log('Received message:', topic, message.toString());
+        //     // Xử lý tin nhắn tại đây
+        // });
         client.on('message', function (topic, message) {
             console.log('Received message:', topic, message.toString());
-            // Xử lý tin nhắn tại đây
+        
+            // Giả sử dữ liệu từ MQTT là một chuỗi JSON có dạng {x: value, y: value, z: value, battery_status: value}
+            try {
+                const data = JSON.parse(message.toString());
+        
+                if (data.x !== undefined) {
+                    document.getElementById('X_geo').textContent = data.x;
+                }
+                if (data.y !== undefined) {
+                    document.getElementById('Y_geo').textContent = data.y;
+                }
+                if (data.z !== undefined) {
+                    document.getElementById('Z_geo').textContent = data.z;
+                }
+                if (data.battery_status !== undefined) {
+                    document.getElementById('bat_status').textContent = data.battery_status + '%';
+                }
+            } catch (e) {
+                console.error('Error parsing MQTT message:', e);
+            }
         });
 
         const throttleSlider = document.getElementById('throttle-slider');
