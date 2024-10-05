@@ -157,7 +157,7 @@
             //client.publish('drone/transfer', JSON.stringify({ throttle: throttleValue,roll:rollValue,yaw:yawValue,pitch:pitchValue }));
         });
 
-       let isDragging = false;
+        let isDragging = false;
         rollSlider.addEventListener('mouseup', resetRollPosition);
         rollSlider.addEventListener('touchend', resetRollPosition);
         joystickContainer.addEventListener('mousedown', function () {
@@ -216,7 +216,13 @@
                 publishDroneData();
             });
         }
-        
+
+        function resetRollPosition() {
+            rollSlider.value = 1500;
+            rollDisplay.textContent = 1500;
+            console.log('Roll reset to: 1500');
+            publishDroneData(); // Gửi lại giá trị sau khi reset
+        }
         function resetJoystickPosition() {
             requestAnimationFrame(() => {
                 joystick.style.top = `${initialJoystickPosition.top}px`;
