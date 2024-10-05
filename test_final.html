@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-    <title>Drone Control Interface</title>
+    <title>Drone!!!!!!</title>
     <style>
         body {
             margin: 0;
@@ -56,10 +56,6 @@
             position: absolute;
             top: 75px;
             left: 75px;
-            cursor: grab;
-        }
-        #joystick:active {
-            cursor: grabbing;
         }
     </style>
 </head>
@@ -97,116 +93,228 @@
 
     <script>
         const mqttStatusDisplay = document.getElementById('mqtt_status_display');
+
         const brokerUrl = "wss://8b28df54d30c4a2b8d0d33b102030c12.s1.eu.hivemq.cloud:8884/mqtt";
-        const options = {
+        var options = {
+            // protocol: 'wss', // Sử dụng WSS cho WebSocket an toàn
+            // host: 'f25d07497dbb44da809d2368a4a7e27f.s1.eu.hivemq.cloud',
             clientId: 'ESPClient',
+            //port: 8884,
             username: 'peppa',
             password: 'Peppa_pig1'
         };
 
-        // Initialize the MQTT client
-        const client = mqtt.connect(brokerUrl, options);
+        // initialize the MQTT client
+        var client = mqtt.connect(brokerUrl,options);
 
-        // Setup the callbacks
+        // setup the callbacks
         client.on('connect', function () {
             mqttStatusDisplay.textContent = 'Connected';
             console.log("Connected to MQTT broker");
-            client.subscribe('drone/transfer');
+            client.subscribe('drone/transfer'); // Đăng ký chủ đề drone/transfer
         });
 
         client.on('error', function (error) {
             mqttStatusDisplay.textContent = 'Connection error: ' + error.message;
         });
 
+        // client.on('message', function (topic, message) {
+        //     console.log('Received message:', topic, message.toString());
+        //     // Xử lý tin nhắn tại đây
+        // });
         client.on('message', function (topic, message) {
-            const data = JSON.parse(message.toString());
-            document.getElementById('X_geo').textContent = data.x || '0';
-            document.getElementById('Y_geo').textContent = data.y || '0';
-            document.getElementById('Z_geo').textContent = data.z || '0';
-            document.getElementById('bat_status').textContent = data.battery_status || '0%';
+            console.log('Received message:', topic, message.toString());
+        
+            // Giả sử dữ liệu từ MQTT là một chuỗi JSON có dạng {x: value, y: value, z: value, battery_status: value}
+            //ví dụ: json form của data phải gửi từ esp lên: {"x":10700,"y":1500,"z":1500,"battery_status":1500} (phải gửi đúng form nha
+            // không là hắn không get về được đâu)
+            try {
+                const data = JSON.parse(message.toString());
+        
+                if (data.x !== undefined) {
+                    document.getElementById('X_geo').textContent = data.x;
+                }
+                if (data.y !== undefined) {
+                    document.getElementById('Y_geo').textContent = data.y;
+                }
+                if (data.z !== undefined) {
+                    document.getElementById('Z_geo').textContent = data.z;
+                }
+                if (data.battery_status !== undefined) {
+                    document.getElementById('bat_status').textContent = data.battery_status + '%';
+                }
+            } catch (e) {
+                console.error('Error parsing MQTT message:', e);
+            }
         });
 
+        // Tạo một đối tượng lưu trữ giá trị hiện tại của throttle, roll, pitch, yaw
+        let droneData = {
+            throttle: 1000,
+            roll: 1500,
+            pitch: 1500,
+            yaw: 1500
+        };
+        
         const throttleSlider = document.getElementById('throttle-slider');
         const rollSlider = document.getElementById('roll-slider');
-        const joystick = document.getElementById('joystick');
-        const joystickContainer = document.querySelector('.joystick-container');
-
+        let joystick = document.getElementById('joystick');
+        let joystickContainer = document.querySelector('.joystick-container');
+        
         const throttleDisplay = document.getElementById('throttle-display');
         const rollDisplay = document.getElementById('roll-display');
         const pitchDisplay = document.getElementById('pitch-display');
         const yawDisplay = document.getElementById('yaw-display');
-
+        
+        // Cập nhật dữ liệu và hiển thị mỗi khi throttle thay đổi
+        throttleSlider.addEventListener('input', function () {
+            droneData.throttle = parseInt(throttleSlider.value);
+            throttleDisplay.textContent = droneData.throttle;
+            publishDroneData();  // Gửi dữ liệu đi
+        });
+        
+        // Cập nhật dữ liệu và hiển thị mỗi khi roll thay đổi
+        rollSlider.addEventListener('input', function () {
+            droneData.roll = parseInt(rollSlider.value);
+            rollDisplay.textContent = droneData.roll;
+            publishDroneData();  // Gửi dữ liệu đi
+        });
+        
+        // Xử lý sự kiện kéo thả joystick để thay đổi pitch và yaw
         let isDragging = false;
-
         const initialJoystickPosition = {
             top: 75,
             left: 75
         };
-
-        throttleSlider.addEventListener('input', updateThrottle);
-        rollSlider.addEventListener('input', updateRoll);
-        joystickContainer.addEventListener('mousedown', startDragging);
-        joystickContainer.addEventListener('mouseup', stopDragging);
-        joystickContainer.addEventListener('mouseleave', stopDragging);
-        joystickContainer.addEventListener('mousemove', moveJoystick);
-
-        function updateThrottle() {
-            throttleDisplay.textContent = throttleSlider.value;
-            publishDroneData();
-        }
-
-        function updateRoll() {
-            rollDisplay.textContent = rollSlider.value;
-            publishDroneData();
-        }
-
-        function startDragging(event) {
+        
+        joystickContainer.addEventListener('mousedown', function () {
             isDragging = true;
-            moveJoystick(event);
-        }
-
-        function stopDragging() {
-            isDragging = false;
-            resetJoystickPosition();
-            publishDroneData();
-        }
-
-        function moveJoystick(event) {
+            joystickContainer.addEventListener('mousemove', updateJoystickPosition);
+        });
+        
+        document.addEventListener('mouseup', function () {
             if (isDragging) {
+                isDragging = false;
+                joystickContainer.removeEventListener('mousemove', updateJoystickPosition);
+                resetJoystickPosition();  // Đặt lại joystick sau khi thả ra
+            }
+        });
+        
+        joystickContainer.addEventListener('touchstart', function (event) {
+            event.preventDefault();
+            isDragging = true;
+            joystickContainer.addEventListener('touchmove', handleTouchMove);
+        });
+        
+        document.addEventListener('touchend', function (event) {
+            event.preventDefault();
+            if (isDragging) {
+                isDragging = false;
+                joystickContainer.removeEventListener('touchmove', handleTouchMove);
+                resetJoystickPosition();
+            }
+        });
+        
+        function handleTouchMove(event) {
+            if (event.touches.length > 0) {
+                updateJoystickPosition(event.touches[0]);
+            }
+        }
+        
+        function updateJoystickPosition(event) {
+            if (!isDragging) return;
+        
+            requestAnimationFrame(() => {
                 let rect = joystickContainer.getBoundingClientRect();
                 let x = event.clientX - rect.left - joystick.offsetWidth / 2;
                 let y = event.clientY - rect.top - joystick.offsetHeight / 2;
-
+        
                 x = Math.max(0, Math.min(x, joystickContainer.offsetWidth - joystick.offsetWidth));
                 y = Math.max(0, Math.min(y, joystickContainer.offsetHeight - joystick.offsetHeight));
-
+        
                 joystick.style.left = `${x}px`;
                 joystick.style.top = `${y}px`;
-
-                let pitchValue = 1000 + ((y / (joystickContainer.offsetHeight - joystick.offsetHeight)) * 1000);
-                let yawValue = 1000 + ((x / (joystickContainer.offsetWidth - joystick.offsetWidth)) * 1000);
-
-                pitchDisplay.textContent = pitchValue.toFixed(0);
-                yawDisplay.textContent = yawValue.toFixed(0);
-            }
+        
+                // Tính toán giá trị pitch và yaw từ vị trí joystick
+                droneData.pitch = 1000 + ((y / (joystickContainer.offsetHeight - joystick.offsetHeight)) * 1000);
+                droneData.yaw = 1000 + ((x / (joystickContainer.offsetWidth - joystick.offsetWidth)) * 1000);
+        
+                pitchDisplay.textContent = droneData.pitch.toFixed(0);
+                yawDisplay.textContent = droneData.yaw.toFixed(0);
+        
+                publishDroneData();  // Gửi dữ liệu sau khi cập nhật pitch và yaw
+            });
         }
-
+        
+        // Reset lại vị trí của joystick về trung tâm
         function resetJoystickPosition() {
-            joystick.style.top = `${initialJoystickPosition.top}px`;
-            joystick.style.left = `${initialJoystickPosition.left}px`;
-            pitchDisplay.textContent = "1500";
-            yawDisplay.textContent = "1500";
+            requestAnimationFrame(() => {
+                joystick.style.top = `${initialJoystickPosition.top}px`;
+                joystick.style.left = `${initialJoystickPosition.left}px`;
+                droneData.pitch = 1500;
+                droneData.yaw = 1500;
+                pitchDisplay.textContent = "1500";
+                yawDisplay.textContent = "1500";
+                publishDroneData();
+            });
+        }
+        
+        // Hàm gửi dữ liệu drone đi theo form throttle, roll, pitch, yaw
+        function publishDroneData() {
+            client.publish('drone/transfer', JSON.stringify(droneData));
         }
 
-        function publishDroneData() {
-            const data = {
-                throttle: parseInt(throttleSlider.value),
-                roll: parseInt(rollSlider.value),
-                pitch: parseInt(pitchDisplay.textContent),
-                yaw: parseInt(yawDisplay.textContent)
-            };
-            client.publish('drone/transfer', JSON.stringify(data));
-        }
     </script>
 </body>
 </html>
+
+<!-- 
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MQTT WebSocket Example</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+</head>
+<body>
+    <h1>MQTT WebSocket Example</h1>
+    <script>
+        // Configuration
+        const brokerUrl = "wss://8b28df54d30c4a2b8d0d33b102030c12.s1.eu.hivemq.cloud:8884/mqtt";
+        const options = {
+            clientId: "webClient-" + Math.random().toString(16).substr(2, 8),
+            username: "peppa",
+            password: "Peppa_pig1"
+        };
+
+        // Connect to the MQTT broker
+        const client = mqtt.connect(brokerUrl, options);
+
+        client.on("connect", function () {
+            console.log("Connected to MQTT broker");
+
+            // Subscribe to a topic
+            client.subscribe("drone/transfer", function (err) {
+                if (!err) {
+                    console.log("Subscribed to topic: drone/transfer");
+                }
+            });
+
+            // Publish a message
+            client.publish("drone/transfer", "Hello from WebSocket!");
+        });
+
+        // Handle incoming messages
+        client.on("message", function (topic, message) {
+            console.log("Received message:", topic, message.toString());
+        });
+
+        client.on("error", function (error) {
+            console.error("Connection error:", error);
+        });
+
+        client.on("close", function () {
+            console.log("Connection closed");
+        });
+    </script>
+</body>
+</html> -->
