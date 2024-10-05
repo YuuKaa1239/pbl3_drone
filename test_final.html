@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,9 +11,7 @@
             font-family: Arial, sans-serif;
             background-color: #220000;
             color: #ffffff;
-            overflow: hidden;
         }
-
         .control-panel {
             display: flex;
             justify-content: space-around;
@@ -22,34 +19,28 @@
             padding: 10px;
             background-color: #440000;
         }
-
         #battery_status {
             font-size: 14px;
         }
-
         .controls-container {
             display: flex;
             justify-content: space-between;
             padding: 20px;
         }
-
         .slider-container {
             display: flex;
             flex-direction: column;
             align-items: center;
         }
-
         #throttle-slider {
             -webkit-appearance: slider-vertical;
             width: 20px;
             height: 200px;
         }
-
         #roll-slider {
             width: 200px;
             margin-top: 20px;
         }
-
         .joystick-container {
             position: relative;
             width: 200px;
@@ -57,7 +48,6 @@
             background-color: #440000;
             border-radius: 50%;
         }
-
         #joystick {
             width: 50px;
             height: 50px;
@@ -66,11 +56,13 @@
             position: absolute;
             top: 75px;
             left: 75px;
-/*             touch-action: none; */
+            cursor: grab;
+        }
+        #joystick:active {
+            cursor: grabbing;
         }
     </style>
 </head>
-
 <body>
     <div class="control-panel">
         <div id="geometry">
@@ -79,9 +71,9 @@
             Z: <span id="Z_geo"></span>
         </div>
         <div id="status-display">
-            Throttle: <span id="throttle-display">1000</span>
-            Roll: <span id="roll-display">1500</span>
-            Pitch: <span id="pitch-display">1500</span>
+            Throttle: <span id="throttle-display">0</span>
+            Roll: <span id="roll-display">1500</span> 
+            Pitch: <span id="pitch-display">1500</span> 
             Yaw: <span id="yaw-display">1500</span>
         </div>
         <div id="battery_status">
@@ -98,7 +90,7 @@
             <label for="roll-slider">Roll</label>
         </div>
 
-        <div class="joystick-container" id="joystick-container">
+        <div class="joystick-container">
             <div id="joystick"></div>
         </div>
     </div>
@@ -106,14 +98,16 @@
     <script>
         const mqttStatusDisplay = document.getElementById('mqtt_status_display');
         const brokerUrl = "wss://8b28df54d30c4a2b8d0d33b102030c12.s1.eu.hivemq.cloud:8884/mqtt";
-        var options = {
+        const options = {
             clientId: 'ESPClient',
             username: 'peppa',
             password: 'Peppa_pig1'
         };
 
-        var client = mqtt.connect(brokerUrl, options);
+        // Initialize the MQTT client
+        const client = mqtt.connect(brokerUrl, options);
 
+        // Setup the callbacks
         client.on('connect', function () {
             mqttStatusDisplay.textContent = 'Connected';
             console.log("Connected to MQTT broker");
@@ -125,93 +119,94 @@
         });
 
         client.on('message', function (topic, message) {
-            console.log('Received message:', topic, message.toString());
-            const [x, y, z, battery] = message.toString().split(',');
-            document.getElementById('X_geo').textContent = x;
-            document.getElementById('Y_geo').textContent = y;
-            document.getElementById('Z_geo').textContent = z;
-            document.getElementById('bat_status').textContent = battery + '%';
+            const data = JSON.parse(message.toString());
+            document.getElementById('X_geo').textContent = data.x || '0';
+            document.getElementById('Y_geo').textContent = data.y || '0';
+            document.getElementById('Z_geo').textContent = data.z || '0';
+            document.getElementById('bat_status').textContent = data.battery_status || '0%';
         });
 
         const throttleSlider = document.getElementById('throttle-slider');
         const rollSlider = document.getElementById('roll-slider');
         const joystick = document.getElementById('joystick');
-        const joystickContainer = document.getElementById('joystick-container');
+        const joystickContainer = document.querySelector('.joystick-container');
 
         const throttleDisplay = document.getElementById('throttle-display');
         const rollDisplay = document.getElementById('roll-display');
         const pitchDisplay = document.getElementById('pitch-display');
         const yawDisplay = document.getElementById('yaw-display');
 
-        const initialJoystickPosition = { top: 75, left: 75 };
-        let throttleValue = 1000;
-        let rollValue = 1500;
-        let pitchValue = 1500;
-        let yawValue = 1500;
+        let isDragging = false;
 
-        throttleSlider.addEventListener('input', function () {
-            throttleValue = parseInt(throttleSlider.value);
-            throttleDisplay.textContent = throttleValue;
+        const initialJoystickPosition = {
+            top: 75,
+            left: 75
+        };
+
+        throttleSlider.addEventListener('input', updateThrottle);
+        rollSlider.addEventListener('input', updateRoll);
+        joystickContainer.addEventListener('mousedown', startDragging);
+        joystickContainer.addEventListener('mouseup', stopDragging);
+        joystickContainer.addEventListener('mouseleave', stopDragging);
+        joystickContainer.addEventListener('mousemove', moveJoystick);
+
+        function updateThrottle() {
+            throttleDisplay.textContent = throttleSlider.value;
             publishDroneData();
-        });
+        }
 
-        rollSlider.addEventListener('input', function () {
-            rollValue = parseInt(rollSlider.value);
-            rollDisplay.textContent = rollValue;
+        function updateRoll() {
+            rollDisplay.textContent = rollSlider.value;
             publishDroneData();
-        });
+        }
 
-        joystickContainer.addEventListener('pointerdown', function (event) {
-            joystickContainer.style.touchAction = 'none';
-            joystickContainer.setPointerCapture(event.pointerId);
+        function startDragging(event) {
+            isDragging = true;
             moveJoystick(event);
-        });
+        }
 
-        joystickContainer.addEventListener('pointermove', function (event) {
-            if (event.pressure > 0) {
-                moveJoystick(event);
-            }
-        });
-
-        joystickContainer.addEventListener('pointerup', function (event) {
-            joystickContainer.style.touchAction = 'auto';
+        function stopDragging() {
+            isDragging = false;
             resetJoystickPosition();
-        });
+            publishDroneData();
+        }
 
         function moveJoystick(event) {
-            let rect = joystickContainer.getBoundingClientRect();
-            let x = event.clientX - rect.left - joystick.offsetWidth / 2;
-            let y = event.clientY - rect.top - joystick.offsetHeight / 2;
+            if (isDragging) {
+                let rect = joystickContainer.getBoundingClientRect();
+                let x = event.clientX - rect.left - joystick.offsetWidth / 2;
+                let y = event.clientY - rect.top - joystick.offsetHeight / 2;
 
-            x = Math.max(0, Math.min(x, joystickContainer.offsetWidth - joystick.offsetWidth));
-            y = Math.max(0, Math.min(y, joystickContainer.offsetHeight - joystick.offsetHeight));
+                x = Math.max(0, Math.min(x, joystickContainer.offsetWidth - joystick.offsetWidth));
+                y = Math.max(0, Math.min(y, joystickContainer.offsetHeight - joystick.offsetHeight));
 
-            joystick.style.left = `${x}px`;
-            joystick.style.top = `${y}px`;
+                joystick.style.left = `${x}px`;
+                joystick.style.top = `${y}px`;
 
-            pitchValue = 1000 + ((y / (joystickContainer.offsetHeight - joystick.offsetHeight)) * 1000);
-            yawValue = 1000 + ((x / (joystickContainer.offsetWidth - joystick.offsetWidth)) * 1000);
+                let pitchValue = 1000 + ((y / (joystickContainer.offsetHeight - joystick.offsetHeight)) * 1000);
+                let yawValue = 1000 + ((x / (joystickContainer.offsetWidth - joystick.offsetWidth)) * 1000);
 
-            pitchDisplay.textContent = pitchValue.toFixed(0);
-            yawDisplay.textContent = yawValue.toFixed(0);
-            publishDroneData();
+                pitchDisplay.textContent = pitchValue.toFixed(0);
+                yawDisplay.textContent = yawValue.toFixed(0);
+            }
         }
 
         function resetJoystickPosition() {
             joystick.style.top = `${initialJoystickPosition.top}px`;
             joystick.style.left = `${initialJoystickPosition.left}px`;
-            pitchValue = 1500;
-            yawValue = 1500;
             pitchDisplay.textContent = "1500";
             yawDisplay.textContent = "1500";
-            publishDroneData();
         }
 
         function publishDroneData() {
-            const data = `${throttleValue},${rollValue},${pitchValue.toFixed(0)},${yawValue.toFixed(0)}`;
-            client.publish('drone/transfer', data);
+            const data = {
+                throttle: parseInt(throttleSlider.value),
+                roll: parseInt(rollSlider.value),
+                pitch: parseInt(pitchDisplay.textContent),
+                yaw: parseInt(yawDisplay.textContent)
+            };
+            client.publish('drone/transfer', JSON.stringify(data));
         }
     </script>
 </body>
-
 </html>
