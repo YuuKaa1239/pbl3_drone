@@ -1,0 +1,117 @@
+<!-- <!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <style>
+    html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center; }
+    .button { background-color: #4CAF50; border: none; color: white; padding: 16px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer; }
+    .button2 { background-color: #555555; }
+  </style>
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
+</head>
+<body>
+  <h1>ESP32 MQTT Control</h1>
+  <p>GPIO 26 - State</p>
+  <p><button class="button" onclick="publishDroneData">ON</button></p>
+  <p><button class="button button2" onclick="publishDroneData">OFF</button></p>
+  
+  <p>GPIO 27 - State</p>
+  <p><button class="button" onclick="publishDroneData">ON</button></p>
+  <p><button class="button button2" onclick="publishDroneData">OFF</button></p>
+  
+  <script>
+    //var mqtt = require('mqtt')
+    const brokerUrl = "wss://indigohoney-eobus0.a02.usw2.aws.hivemq.cloud:8884/mqtt";
+    var options = {
+            // protocol: 'wss', // Sử dụng WSS cho WebSocket an toàn
+            // host: 'f25d07497dbb44da809d2368a4a7e27f.s1.eu.hivemq.cloud',
+            clientId: 'ESPClient',
+            //port: 8884,
+            username: 'peppa',
+            password: 'Peppa_pig1'
+        };
+
+    // initialize the MQTT client
+    var client = mqtt.connect(brokerUrl,options);
+
+    // setup the callbacks
+    client.on('connect', function () {
+        console.log("connected");
+    });
+
+
+    function sendMQTTMessage(message) {
+      const topic = "drone/transfer";
+      const mqttMessage = new Paho.MQTT.Message(message);
+      mqttMessage.destinationName = topic;
+      client.send(mqttMessage);
+      console.log("Message sent: " + message);
+    }
+
+    client.connect(options);
+    function publishDroneData() {
+            const data = {
+                throttle: parseInt(throttleSlider.value),
+                roll: parseInt(rollSlider.value),
+                pitch: parseInt(pitchDisplay.textContent),
+                yaw: parseInt(yawDisplay.textContent)
+            };
+            client.publish('drone/transfer', JSON.stringify(data));
+        }
+  </script>
+</body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <style>
+    html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center; }
+    .button { background-color: #4CAF50; border: none; color: white; padding: 16px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer; }
+    .button2 { background-color: #555555; }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
+</head>
+<body>
+  <h1>ESP32 MQTT Control</h1>
+  <p>GPIO 26 - State</p>
+  <p><button class="button" onclick="sendMQTTMessage('26/on')">ON</button></p>
+  <p><button class="button button2" onclick="sendMQTTMessage('26/off')">OFF</button></p>
+  
+  <p>GPIO 27 - State</p>
+  <p><button class="button" onclick="sendMQTTMessage('27/on')">ON</button></p>
+  <p><button class="button button2" onclick="sendMQTTMessage('27/off')">OFF</button></p>
+  
+  <script>
+    const broker = 'wss://8b28df54d30c4a2b8d0d33b102030c12.s1.eu.hivemq.cloud:8884/mqtt';
+    const clientId = 'webClient-' + Math.random().toString(16).substr(2, 8);
+    const options = {
+      useSSL: true,
+      userName: 'peppa',
+      password: 'Peppa_pig1',
+      onSuccess: onConnect
+    };
+
+    const client = new Paho.MQTT.Client(broker, clientId);
+    
+    function onConnect() {
+      console.log("Connected to MQTT broker");
+    }
+    
+    function sendMQTTMessage(message) {
+      const topic = "drone/transfer";
+      const mqttMessage = new Paho.MQTT.Message(message);
+      mqttMessage.destinationName = topic;
+      client.send(mqttMessage);
+      console.log("Message sent: " + message);
+    }
+
+    client.connect(options);
+  </script>
+</body>
+</html>
