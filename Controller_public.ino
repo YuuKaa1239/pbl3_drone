@@ -12,11 +12,11 @@ HardwareSerial vietnam(2); // UART2
 
 // Wi-Fi Access Point credentials
 const char* ap_ssid = "DroneControlAP";
-const char* ap_password = "12345678";
+const char* ap_password = "123123123";
 
 // Wi-Fi Station credentials (mạng Wi-Fi công cộng)
-const char* sta_ssid = "K33 NAM CAO";
-const char* sta_password = "NMCAO33k";
+const char* sta_ssid = "P204 / 209";
+const char* sta_password = "30041975";
 
 // MQTT Broker
 const char* mqtt_server = "cda79e6780fe42829598bfb61e6ba1fe.s1.eu.hivemq.cloud";
@@ -124,6 +124,7 @@ const char HTML_PAGE[] = R"=====(
     <meta charset="UTF-8">
     <title>Drone Control Interface</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drone!!!!!!</title>
     <style>
         body {
             margin: 0;
@@ -143,7 +144,11 @@ const char HTML_PAGE[] = R"=====(
             background-color: #440000;
         }
         #status-display {
-            text-align: left;
+            display: flex;
+            /* text-align: left; */
+            gap: 10px; /* Khoảng cách giữa các phần tử */
+            justify-content: center;
+            align-items: center;
         }
         #battery_status {
             font-size: 14px;
@@ -174,7 +179,7 @@ const char HTML_PAGE[] = R"=====(
         .vertical-slider {
             -webkit-appearance: slider-vertical;
             width: 60px; /* Tăng độ rộng */
-            height: 300px; /* Tăng chiều cao */
+            height: 130px; /* Tăng chiều cao */
             writing-mode: bt-lr; /* For Firefox */
             margin: 0 20px;
         }
@@ -235,7 +240,7 @@ const char HTML_PAGE[] = R"=====(
         }
         .vertical-slider-container label {
             position: absolute;
-          /*  right: -10px; /* Đặt nhãn bên phải của thanh trượt */
+           /* right: -10px; /* Đặt nhãn bên phải của thanh trượt */
             top: 50%;
             transform: translateY(-50%);
             white-space: nowrap;
@@ -250,30 +255,31 @@ const char HTML_PAGE[] = R"=====(
             font-size: 16px;
             font-weight: bold;
         }
-        @media (max-width: 600px) {
+        /* @media (max-width: 1000px) {
             .controls-container {
                 flex-direction: column;
                 align-items: center;
             }
             .slider-group {
                 width: 80%;
+                height: 40%;
             }
             .horizontal-slider {
                 width: 100%;
             }
             .vertical-slider-container label {
                 right: -70px; /* Điều chỉnh lại cho màn hình nhỏ */
-            }
+            } */
         }
     </style>
 </head>
 <body>
     <div class="control-panel">
         <div id="status-display">
-            Throttle: <span id="throttle-display">1000</span><br>
-            Yaw: <span id="yaw-display">1500</span><br>
-            Pitch: <span id="pitch-display">1500</span><br>
+            Throt: <span id="throttle-display">1000</span>
             Roll: <span id="roll-display">1500</span>
+            Pitch: <span id="pitch-display">1500</span>
+            Yaw: <span id="yaw-display">1500</span>
         </div>
         <div id="battery_status">
             Battery: <span id="bat_status">0%</span>
@@ -288,6 +294,7 @@ const char HTML_PAGE[] = R"=====(
                 <input type="range" id="throttle" class="slider vertical-slider" min="1000" max="2000" value="1000" orient="vertical">
                 <label for="throttle">Throttle</label>
                 <span id="throttle-value" class="value-display">1000</span>
+                 <!-- <label for="throttle" id="throttle-value" class="value-display"></label> -->
             </div>
             <div class="horizontal-slider-container">
                 <label for="yaw">Yaw</label>
