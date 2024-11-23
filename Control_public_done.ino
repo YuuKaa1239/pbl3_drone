@@ -74,7 +74,6 @@ int drop_value=0;
 float pitch_recv = 0.0;
 float roll_recv = 0.0;
 float voltage_recv = 0.0;
-
 // Networking
 IPAddress local_ip(192,168,4,1);
 IPAddress gateway(192,168,4,1);
@@ -93,6 +92,7 @@ struct __attribute__((packed)) DataPacketSend {
   int32_t pitch;
   int32_t roll;
   int32_t yaw;
+  int32_t drop_value;
   uint8_t endByte;
 };
 
@@ -106,13 +106,14 @@ struct __attribute__((packed)) DataPacketReceive {
 };
 
 // Function to send data via UART
-void sendData(int32_t throttle, int32_t pitch, int32_t roll, int32_t yaw) {
+void sendData(int32_t throttle, int32_t pitch, int32_t roll, int32_t yaw, int32_t drop_value) {
   DataPacketSend packet;
   packet.startByte = 0xAA; // Start byte
   packet.throttle = throttle;
   packet.pitch = pitch;
   packet.roll = roll;
   packet.yaw = yaw;
+  packet.drop_value=drop_value;
   packet.endByte = 0x55; // End byte
   vietnam.write((uint8_t*)&packet, sizeof(packet)); // Send the entire packet
 }
@@ -344,7 +345,7 @@ const char HTML_PAGE[] = R"=====(
 
         let drop_val = 0;
         DropItem.addEventListener('click', function () {
-            drop_val = drop_val ===0?1:0;
+            drop_val = 1;
             console.log(drop_val);
             publishDroneData();
         })
@@ -605,7 +606,7 @@ void loop() {
 
   // Send data via UART at regular intervals or when new data is available
   if (currentTime - lastSendTime >= 50 || newDataToSend) {
-    sendData(throttle, pitch, roll, yaw);
+    sendData(throttle, pitch, roll, yaw,drop_value);
     lastSendTime = currentTime;
     newDataToSend = false; // Reset the flag
   }
