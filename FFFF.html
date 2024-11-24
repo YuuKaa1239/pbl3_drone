@@ -266,23 +266,7 @@
             display.textContent = 1500;
             publishDroneData();
         }
-
-        // Pitch slider reset
-        pitchSlider.addEventListener('mouseup', function() {
-            resetSlider(pitchSlider, pitchDisplay);
-        });
-        pitchSlider.addEventListener('touchend', function() {
-            resetSlider(pitchSlider, pitchDisplay);
-        });
-
-        // Roll slider reset
-        rollSlider.addEventListener('mouseup', function() {
-            resetSlider(rollSlider, rollDisplay);
-        });
-        rollSlider.addEventListener('touchend', function() {
-            resetSlider(rollSlider, rollDisplay);
-        });
-
+        
         function publishDroneData() {
             const data = {
                 throttle: parseInt(throttleSlider.value),
