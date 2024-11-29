@@ -17,8 +17,8 @@ const char* ap_ssid = "DroneControlAP";
 const char* ap_password = "12345678";
 
 // Wi-Fi Station credentials (mạng Wi-Fi công cộng)
-const char* sta_ssid = "P204 / 209";
-const char* sta_password = "30041975";
+// const char* sta_ssid = "P204 / 209";
+// const char* sta_password = "30041975";
 
 // MQTT Broker
 const char* mqtt_server = "cda79e6780fe42829598bfb61e6ba1fe.s1.eu.hivemq.cloud";
@@ -561,16 +561,16 @@ void setup_wifi() {
   Serial.println("Access Point started");
 
   // Connect to public Wi-Fi network (Station mode)
-  Serial.print("Connecting to ");
-  Serial.println(sta_ssid);
-  WiFi.begin(sta_ssid, sta_password);
+  // Serial.print("Connecting to ");
+  // Serial.println(sta_ssid);
+  // WiFi.begin(sta_ssid, sta_password);
 
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("");
-  Serial.println("WiFi connected in STA mode");
+  // while (WiFi.status() != WL_CONNECTED) {
+  //   delay(500);
+  //   Serial.print(".");
+  // }
+  // Serial.println("");
+  // Serial.println("WiFi connected in STA mode");
 }
 
 float generateData(float minValue, float maxValue) {
