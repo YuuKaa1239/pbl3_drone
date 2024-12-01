@@ -556,7 +556,7 @@ void setup_wifi() {
   WiFi.mode(WIFI_AP_STA);
 
   // Start Wi-Fi Access Point
-  WiFi.softAP(ap_ssid, ap_password);
+  WiFi.softAP(service_name, pop);
   WiFi.softAPConfig(local_ip, gateway, subnet);
   Serial.println("Access Point started");
 
@@ -623,12 +623,14 @@ void setup()
 {
   Serial.begin(115200);
   pinMode(gpio_0, INPUT);
-
+  WiFi.mode(WIFI_AP_STA);
+  WiFi.softAPConfig(local_ip, gateway, subnet);
+  Serial.println("Access Point started");
   // Initialize UART for CC2530 communication
   vietnam.begin(115200, SERIAL_8N1, RXpin, TXpin);
-
-  // Set up Wi-Fi
-  setup_wifi();
+  
+  //Set up Wi-Fi
+  //setup_wifi();
 
   // Set up MQTT client
   espClient.setCACert(root_ca);  // Set your CA certificate here
